@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 class UploadDocumentsScreen extends StatefulWidget {
   const UploadDocumentsScreen({super.key});
 
+  // ✅ GLOBAL LIST (used everywhere)
+  static List<String> uploadedDocs = [];
+
   @override
   State<UploadDocumentsScreen> createState() =>
       _UploadDocumentsScreenState();
@@ -10,78 +13,61 @@ class UploadDocumentsScreen extends StatefulWidget {
 
 class _UploadDocumentsScreenState
     extends State<UploadDocumentsScreen> {
-  final List<String> _documents = [];
-  final TextEditingController _docController = TextEditingController();
+
+  final TextEditingController _docController =
+      TextEditingController();
 
   void _addDocument() {
-    final text = _docController.text.trim();
-    if (text.isEmpty) return;
+    String doc = _docController.text.trim();
+
+    if (doc.isEmpty) return;
 
     setState(() {
-      _documents.add(text);
-      _docController.clear();
+      UploadDocumentsScreen.uploadedDocs.add(doc);
     });
-  }
 
-  void _deleteDocument(int index) {
-    setState(() {
-      _documents.removeAt(index);
-    });
-  }
-
-  @override
-  void dispose() {
-    _docController.dispose();
-    super.dispose();
+    _docController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Upload Documents"),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Upload Documents")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+
             TextField(
               controller: _docController,
-              decoration: InputDecoration(
-                hintText: "Enter document name (e.g. BP Report)",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addDocument,
-                ),
+              decoration: const InputDecoration(
+                labelText: "Enter document name",
+                border: OutlineInputBorder(),
               ),
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: _addDocument,
+              child: const Text("Add Document"),
             ),
 
             const SizedBox(height: 20),
 
+            const Text(
+              "Uploaded Documents",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+
             Expanded(
-              child: _documents.isEmpty
-                  ? const Center(
-                      child: Text("No documents added"),
-                    )
-                  : ListView.builder(
-                      itemCount: _documents.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            title: Text(_documents[index]),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteDocument(index),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+              child: ListView(
+                children: UploadDocumentsScreen.uploadedDocs
+                    .map((doc) => ListTile(
+                          title: Text(doc),
+                        ))
+                    .toList(),
+              ),
             ),
           ],
         ),

@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:medivault/data/disease_data.dart';
+import 'missing_docs_screen.dart'; 
+import 'package:medivault/data/user_profile.dart';
 
 class HealthProfileScreen extends StatefulWidget {
   const HealthProfileScreen({super.key});
 
   @override
-  State<HealthProfileScreen> createState() => _HealthProfileScreenState();
+  State<HealthProfileScreen> createState() =>
+      _HealthProfileScreenState();
 }
 
 class _HealthProfileScreenState extends State<HealthProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _allergiesController = TextEditingController();
   final _conditionsController = TextEditingController();
 
-  final List<String> _bloodGroups = const [
+  final List<String> _bloodGroups = [
     'A+','A-','B+','B-','AB+','AB-','O+','O-'
   ];
 
   String? _selectedBloodGroup;
+
+
 
   @override
   void dispose() {
@@ -37,116 +44,126 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
   }
 
   String? _validateAge(String? value) {
-    final ageText = (value ?? '').trim();
-    if (ageText.isEmpty) return 'Age is required';
-
-    final age = int.tryParse(ageText);
-    if (age == null) return 'Enter valid age';
-    if (age <= 0 || age > 120) return 'Enter age 1–120';
-
+    final age = int.tryParse(value ?? '');
+    if (age == null || age <= 0) return 'Enter valid age';
     return null;
   }
 
-  Future<void> _saveProfile() async {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
+  void _saveProfile() {
+    if (!_formKey.currentState!.validate()) return;
 
     FocusScope.of(context).unfocus();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Health profile saved')),
-    );
-  }
+    String disease = _conditionsController.text.trim();
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    //  SAVE PROFILE
+    UserProfile.saveProfile({
+      'name': _nameController.text,
+      'age': _ageController.text,
+      'blood': _selectedBloodGroup,
+      'allergies': _allergiesController.text,
+      'disease': disease,
+    });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Health Profile'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Personal Health Details',
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 20),
-
-              TextFormField(
-                controller: _nameController,
-                validator: (v) => _validateRequired(v, 'Name'),
-                decoration: _inputDecoration('Name', Icons.person),
-              ),
-
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _ageController,
-                keyboardType: TextInputType.number,
-                validator: _validateAge,
-                decoration: _inputDecoration('Age', Icons.cake),
-              ),
-
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                value: _selectedBloodGroup,
-                items: _bloodGroups
-                    .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedBloodGroup = v),
-                validator: (v) => v == null ? 'Select blood group' : null,
-                decoration: _inputDecoration('Blood Group', Icons.bloodtype),
-              ),
-
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _allergiesController,
-                maxLines: 2,
-                validator: (v) => _validateRequired(v, 'Allergies'),
-                decoration: _inputDecoration('Allergies', Icons.warning),
-              ),
-
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _conditionsController,
-                maxLines: 2,
-                validator: (v) => _validateRequired(v, 'Conditions'),
-                decoration: _inputDecoration('Medical Conditions', Icons.medical_information),
-              ),
-
-              const SizedBox(height: 24),
-
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  child: const Text('Save'),
-                ),
-              ),
-            ],
-          ),
+    //  Navigate to Missing Docs
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MissingDocsScreen(
+          disease: disease,
         ),
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Health Profile'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+
+              TextFormField(
+                controller: _nameController,
+                validator: (v) => _validateRequired(v, 'Name'),
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              TextFormField(
+                controller: _ageController,
+                keyboardType: TextInputType.number,
+                validator: _validateAge,
+                decoration: const InputDecoration(
+                  labelText: 'Age',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              DropdownButtonFormField<String>(
+                value: _selectedBloodGroup,
+                items: _bloodGroups
+                    .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
+                    .toList(),
+                onChanged: (v) =>
+                    setState(() => _selectedBloodGroup = v),
+                validator: (v) =>
+                    v == null ? 'Select blood group' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Blood Group',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              TextFormField(
+                controller: _allergiesController,
+                decoration: const InputDecoration(
+                  labelText: 'Allergies',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              TextFormField(
+                controller: _conditionsController,
+                validator: (v) => _validateRequired(v, 'Disease'),
+                decoration: const InputDecoration(
+                  labelText: 'Disease (e.g. Diabetes)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _saveProfile,
+                  child: const Text('Analyze'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

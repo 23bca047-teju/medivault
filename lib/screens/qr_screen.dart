@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:medivault/data/user_profile.dart';
 
 class QRScreen extends StatelessWidget {
   const QRScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // This is the data encoded in QR
-    final String qrData =
-        "Name: Tejaswini\nBlood: O+\nAllergies: Dust\nCondition: BP\nContact: 9876543210";
+    final profile = UserProfile.getProfile();
+
+    final String qrData = profile == null
+        ? "No Data Available"
+        : "Name: ${profile['name']}\n"
+          "Age: ${profile['age']}\n"
+          "Blood: ${profile['blood']}\n"
+          "Allergies: ${profile['allergies']}\n"
+          "Condition: ${profile['disease']}";
 
     return Scaffold(
       appBar: AppBar(
@@ -35,6 +42,7 @@ class QRScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
+
                 QrImageView(
                   data: qrData,
                   size: 200,

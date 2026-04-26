@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:medivault/data/user_profile.dart';
 
 class EmergencyCardScreen extends StatelessWidget {
   const EmergencyCardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 🔹 SAMPLE DATA (later DB)
-    String name = "Tejaswini";
-    String bloodGroup = "O+";
-    String allergies = "None";
-    String condition = "BP Patient";
-    String contact = "9876543210";
+    final profile = UserProfile.getProfile();
+
+    final name = profile?['name'] ?? 'Not set';
+    final age = profile?['age'] ?? 'Not set';
+    final blood = profile?['blood'] ?? 'Not set';
+    final allergies = profile?['allergies'] ?? 'None';
+    final condition = profile?['disease'] ?? 'Not set';
 
     return Scaffold(
       appBar: AppBar(
@@ -41,10 +43,10 @@ class EmergencyCardScreen extends StatelessWidget {
                 const Divider(),
 
                 _info("Name", name),
-                _info("Blood Group", bloodGroup),
+                _info("Age", age.toString()),
+                _info("Blood Group", blood),
                 _info("Allergies", allergies),
                 _info("Condition", condition),
-                _info("Emergency Contact", contact),
               ],
             ),
           ),

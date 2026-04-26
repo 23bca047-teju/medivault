@@ -6,6 +6,7 @@ import 'emergency_card_screen.dart';
 import 'reminders_screen.dart';
 import 'qr_screen.dart';
 import 'ai_score_screen.dart';
+import 'view_profile_screen.dart'; 
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -25,6 +26,7 @@ class DashboardScreen extends StatelessWidget {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
         children: [
+
           _DashboardCard(
             title: 'Health Profile',
             icon: Icons.person,
@@ -38,6 +40,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+
           _DashboardCard(
             title: 'Upload Documents',
             icon: Icons.upload_file,
@@ -51,6 +54,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+
           _DashboardCard(
             title: 'Emergency Card',
             icon: Icons.emergency,
@@ -64,6 +68,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+
           _DashboardCard(
             title: 'Reminders',
             icon: Icons.notifications,
@@ -77,6 +82,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+
           _DashboardCard(
             title: 'QR Code',
             icon: Icons.qr_code,
@@ -90,6 +96,7 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+
           _DashboardCard(
             title: 'AI Score',
             icon: Icons.analytics,
@@ -99,6 +106,21 @@ class DashboardScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const AIScoreScreen(),
+                ),
+              );
+            },
+          ),
+
+          
+          _DashboardCard(
+            title: 'View Profile',
+            icon: Icons.person_outline,
+            color: Colors.indigo,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ViewProfileScreen(),
                 ),
               );
             },
