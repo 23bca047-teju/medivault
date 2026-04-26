@@ -6,7 +6,7 @@ import 'emergency_card_screen.dart';
 import 'reminders_screen.dart';
 import 'qr_screen.dart';
 import 'ai_score_screen.dart';
-import 'view_profile_screen.dart'; 
+
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -63,7 +63,7 @@ class DashboardScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EmergencyCardScreen(),
+                  builder: (context) => const EmergencyScreen(),
                 ),
               );
             },
@@ -112,19 +112,6 @@ class DashboardScreen extends StatelessWidget {
           ),
 
           
-          _DashboardCard(
-            title: 'View Profile',
-            icon: Icons.person_outline,
-            color: Colors.indigo,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ViewProfileScreen(),
-                ),
-              );
-            },
-          ),
         ],
       ),
     );

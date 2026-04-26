@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:medivault/data/database_helper.dart';
+import 'package:medivault/services/notification_service.dart';
 
 class ReminderScreen extends StatefulWidget {
   const ReminderScreen({super.key});
@@ -8,34 +10,65 @@ class ReminderScreen extends StatefulWidget {
 }
 
 class _ReminderScreenState extends State<ReminderScreen> {
-  final List<String> _reminders = [];
+  final TextEditingController _controller = TextEditingController();
 
-  final _controller = TextEditingController();
+  List<Map<String, dynamic>> reminders = [];
 
-  void _addReminder() {
-    if (_controller.text.isEmpty) return;
+  @override
+  void initState() {
+    super.initState();
+    loadReminders();
+  }
+
+  Future<void> loadReminders() async {
+    final data = await DatabaseHelper.instance.getReminders();
 
     setState(() {
-      _reminders.add(_controller.text);
-      _controller.clear();
+      reminders = data;
     });
   }
 
-  void _deleteReminder(int index) {
-    setState(() {
-      _reminders.removeAt(index);
-    });
+  Future<void> addReminder() async {
+    final text = _controller.text.trim();
+
+    if (text.isEmpty) return;
+
+    // SAVE TO DATABASE
+    await DatabaseHelper.instance.insertReminder(text);
+
+    // SHOW NOTIFICATION
+    await NotificationService.showNotification(
+      "MediVault Reminder",
+      text,
+    );
+
+    _controller.clear();
+    await loadReminders();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Reminder added")),
+    );
+  }
+
+  Future<void> deleteReminder(int id) async {
+    await DatabaseHelper.instance.deleteReminder(id);
+    await loadReminders();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reminders'),
-        backgroundColor: const Color(0xFF0F172A),
-      ),
+      appBar: AppBar(title: const Text("Reminders")),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Row(
@@ -44,30 +77,39 @@ class _ReminderScreenState extends State<ReminderScreen> {
                   child: TextField(
                     controller: _controller,
                     decoration: const InputDecoration(
-                      hintText: 'Enter medicine / appointment',
+                      hintText: "Enter medicine / appointment",
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: _addReminder,
-                )
+                  onPressed: addReminder,
+                ),
               ],
             ),
+
             const SizedBox(height: 20),
+
             Expanded(
-              child: ListView.builder(
-                itemCount: _reminders.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_reminders[index]),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _deleteReminder(index),
+              child: reminders.isEmpty
+                  ? const Center(child: Text("No reminders added"))
+                  : ListView.builder(
+                      itemCount: reminders.length,
+                      itemBuilder: (context, index) {
+                        final item = reminders[index];
+
+                        return Card(
+                          child: ListTile(
+                            title: Text(item['title'] ?? ''),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () =>
+                                  deleteReminder(item['id']),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

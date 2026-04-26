@@ -1,19 +1,109 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'package:medivault/services/notification_service.dart';
+import 'screens/dashboard_screen.dart';
 
-void main() {
-  runApp(const MediVaultApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+  runApp(const MyApp());
 }
 
-class MediVaultApp extends StatelessWidget {
-  const MediVaultApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MediVault',
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      title: 'MediVault',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const LoginScreen(),
+    );
+  }
+}
+
+// ---------------- LOGIN SCREEN ----------------
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final email = TextEditingController();
+  final password = TextEditingController();
+
+  void login() {
+    if (email.text == "admin@medivault.com" &&
+        password.text == "123456") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const DashboardScreen(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid Credentials")),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    email.dispose();
+    password.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "MediVault Login",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              TextField(
+                controller: email,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                ),
+              ),
+
+              TextField(
+                controller: password,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: "Password",
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: login,
+                child: const Text("Login"),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

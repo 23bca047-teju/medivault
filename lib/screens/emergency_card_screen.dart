@@ -1,72 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:medivault/data/user_profile.dart';
+import 'package:medivault/data/database_helper.dart';
 
-class EmergencyCardScreen extends StatelessWidget {
-  const EmergencyCardScreen({super.key});
+class EmergencyScreen extends StatefulWidget {
+  const EmergencyScreen({super.key});
+
+  @override
+  State<EmergencyScreen> createState() => _EmergencyScreenState();
+}
+
+class _EmergencyScreenState extends State<EmergencyScreen> {
+  Map<String, dynamic>? profile;
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+    final data = await DatabaseHelper.instance.getProfile();
+
+    setState(() {
+      profile = data;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final profile = UserProfile.getProfile();
-
-    final name = profile?['name'] ?? 'Not set';
-    final age = profile?['age'] ?? 'Not set';
-    final blood = profile?['blood'] ?? 'Not set';
-    final allergies = profile?['allergies'] ?? 'None';
-    final condition = profile?['disease'] ?? 'Not set';
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Emergency Card"),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(20),
-          elevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Emergency Details",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+      appBar: AppBar(title: const Text("Emergency Info")),
+      body: profile == null
+          ? const Center(
+              child: Text("No profile found"),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Emergency Patient Card",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Text("Name: ${profile!['name'] ?? 'N/A'}"),
+                      Text("Age: ${profile!['age'] ?? 'N/A'}"),
+                      Text("Blood Group: ${profile!['bloodGroup'] ?? 'N/A'}"),
+                      Text("Allergies: ${profile!['allergies'] ?? 'N/A'}"),
+                      Text("Disease: ${profile!['disease'] ?? 'N/A'}"),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        "Use this info in emergency situations.",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ],
                   ),
                 ),
-                const Divider(),
-
-                _info("Name", name),
-                _info("Age", age.toString()),
-                _info("Blood Group", blood),
-                _info("Allergies", allergies),
-                _info("Condition", condition),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _info(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Text(
-            "$label: ",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
     );
   }
 }

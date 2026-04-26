@@ -1,67 +1,112 @@
 import 'package:flutter/material.dart';
+import 'package:medivault/data/database_helper.dart';
+import 'package:medivault/data/disease_data.dart'; // <-- YOUR FILE
 
-class AIScoreScreen extends StatelessWidget {
+class AIScoreScreen extends StatefulWidget {
   const AIScoreScreen({super.key});
 
   @override
+  State<AIScoreScreen> createState() => _AIScoreScreenState();
+}
+
+class _AIScoreScreenState extends State<AIScoreScreen> {
+  Map<String, dynamic>? profile;
+  List<Map<String, dynamic>> documents = [];
+
+  int score = 0;
+  List<String> missingDocs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Future<void> loadData() async {
+    final p = await DatabaseHelper.instance.getProfile();
+    final d = await DatabaseHelper.instance.getDocuments();
+
+    setState(() {
+      profile = p;
+      documents = d;
+      calculateScore();
+    });
+  }
+
+  void calculateScore() {
+    score = 0;
+    missingDocs.clear();
+
+    // ❌ NO PROFILE
+    if (profile == null || profile!.isEmpty) {
+      missingDocs.add("Complete Health Profile");
+      return;
+    }
+
+    String disease = profile!['disease'] ?? "General";
+
+    // fallback safety
+    if (!DiseaseData.diseaseDocs.containsKey(disease)) {
+      disease = "General";
+    }
+
+    // ✅ PROFILE SCORE
+    score += 20;
+
+    // ✅ REQUIRED DOCS
+    List<String> requiredDocs =
+        DiseaseData.diseaseDocs[disease] ?? [];
+
+    // ✅ USER UPLOADED DOCS
+    List<String> uploadedDocs =
+        documents.map((e) => (e['name'] ?? "").toString()).toList();
+
+    int matched = 0;
+
+    for (var reqDoc in requiredDocs) {
+      bool found = uploadedDocs.any((uploaded) =>
+          uploaded.toLowerCase().contains(reqDoc.toLowerCase()));
+
+      if (found) {
+        matched++;
+      } else {
+        missingDocs.add(reqDoc);
+      }
+    }
+
+    // ✅ DOCUMENT SCORE (60%)
+    if (requiredDocs.isNotEmpty) {
+      score += ((matched / requiredDocs.length) * 60).toInt();
+    }
+
+    // ✅ EMERGENCY / BASE SCORE
+    score += 20;
+
+    // 🔒 LIMIT SCORE
+    if (score > 100) score = 100;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 🔹 TEMP SAMPLE DATA (later we connect DB)
-    bool hasProfile = true;
-    bool hasDocuments = false;
-    bool hasEmergency = true;
-
-    int score = 0;
-    List<String> missing = [];
-
-    if (hasProfile) {
-      score += 40;
-    } else {
-      missing.add("Complete Health Profile");
-    }
-
-    if (hasDocuments) {
-      score += 30;
-    } else {
-      missing.add("Upload Medical Documents");
-    }
-
-    if (hasEmergency) {
-      score += 30;
-    } else {
-      missing.add("Add Emergency Details");
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("AI Preparedness Score"),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("AI Score")),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             // SCORE CARD
             Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
               child: Padding(
-                padding: const EdgeInsets.all(30),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const Text(
-                      "Your Score",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    const Text("AI Preparedness Score"),
                     const SizedBox(height: 10),
                     Text(
                       "$score / 100",
                       style: const TextStyle(
-                        fontSize: 36,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
                       ),
                     ),
                   ],
@@ -69,34 +114,45 @@ class AIScoreScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
-            // MISSING ITEMS
-            const Align(
+            // DISEASE DISPLAY
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "What’s Missing:",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                "Disease: ${profile?['disease'] ?? 'Not Set'}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
 
             const SizedBox(height: 10),
 
-            ...missing.map(
-              (item) => ListTile(
-                leading: const Icon(Icons.warning, color: Colors.red),
-                title: Text(item),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Missing Documents",
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
 
-            if (missing.isEmpty)
-              const Text(
-                "All set! Great job 🎉",
-                style: TextStyle(color: Colors.green),
-              ),
+            const SizedBox(height: 10),
+
+            // MISSING LIST
+            Expanded(
+              child: missingDocs.isEmpty
+                  ? const Center(
+                      child: Text("All required documents uploaded ✅"),
+                    )
+                  : ListView.builder(
+                      itemCount: missingDocs.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          leading: const Icon(Icons.warning, color: Colors.red),
+                          title: Text(missingDocs[index]),
+                        );
+                      },
+                    ),
+            ),
           ],
         ),
       ),
