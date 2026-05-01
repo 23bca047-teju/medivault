@@ -12,6 +12,8 @@ class ReminderScreen extends StatefulWidget {
 class _ReminderScreenState extends State<ReminderScreen> {
   final TextEditingController _controller = TextEditingController();
 
+  TimeOfDay? selectedTime;
+
   List<Map<String, dynamic>> reminders = [];
 
   @override
@@ -28,27 +30,64 @@ class _ReminderScreenState extends State<ReminderScreen> {
     });
   }
 
+  // ---------------- PICK TIME ----------------
+  Future<void> pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedTime = picked;
+      });
+    }
+  }
+
+  // ---------------- ADD REMINDER ----------------
   Future<void> addReminder() async {
     final text = _controller.text.trim();
 
-    if (text.isEmpty) return;
+    if (text.isEmpty || selectedTime == null) return;
 
-    // SAVE TO DATABASE
-    await DatabaseHelper.instance.insertReminder(text);
+    final now = DateTime.now();
 
-    // SHOW NOTIFICATION
-    await NotificationService.showNotification(
-      "MediVault Reminder",
+    DateTime scheduled = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      selectedTime!.hour,
+      selectedTime!.minute,
+    );
+
+    // ✅ Fix: if time already passed → schedule tomorrow
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    // SAVE DB
+    await DatabaseHelper.instance.insertReminder(
       text,
+      selectedTime!.format(context),
+    );
+
+    // SCHEDULE NOTIFICATION
+    await NotificationService.scheduleNotification(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      "Reminder",
+      text,
+      scheduled,
     );
 
     _controller.clear();
+    selectedTime = null;
+
     await loadReminders();
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Reminder added")),
+      const SnackBar(content: Text("Reminder Scheduled")),
     );
   }
 
@@ -63,6 +102,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
     super.dispose();
   }
 
+  // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,28 +111,42 @@ class _ReminderScreenState extends State<ReminderScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                labelText: "Medicine / Appointment",
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: "Enter medicine / appointment",
-                    ),
-                  ),
+                ElevatedButton(
+                  onPressed: pickTime,
+                  child: const Text("Pick Time"),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: addReminder,
+                const SizedBox(width: 10),
+                Text(
+                  selectedTime == null
+                      ? "No time selected"
+                      : selectedTime!.format(context),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: addReminder,
+              child: const Text("Add Reminder"),
             ),
 
             const SizedBox(height: 20),
 
             Expanded(
               child: reminders.isEmpty
-                  ? const Center(child: Text("No reminders added"))
+                  ? const Center(child: Text("No reminders"))
                   : ListView.builder(
                       itemCount: reminders.length,
                       itemBuilder: (context, index) {
@@ -100,7 +154,8 @@ class _ReminderScreenState extends State<ReminderScreen> {
 
                         return Card(
                           child: ListTile(
-                            title: Text(item['title'] ?? ''),
+                            title: Text(item['title']),
+                            subtitle: Text(item['time'] ?? ''),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () =>

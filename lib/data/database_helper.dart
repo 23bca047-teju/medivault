@@ -19,12 +19,14 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 3, // ✅ bumped version
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
   Future<void> _createDB(Database db, int version) async {
+    // ---------------- PROFILE ----------------
     await db.execute('''
       CREATE TABLE profile (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,6 +38,7 @@ class DatabaseHelper {
       )
     ''');
 
+    // ---------------- DOCUMENTS ----------------
     await db.execute('''
       CREATE TABLE documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,12 +47,41 @@ class DatabaseHelper {
       )
     ''');
 
+    // ---------------- REMINDERS (WITH TIME) ----------------
     await db.execute('''
       CREATE TABLE reminders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT
+        title TEXT,
+        time TEXT
       )
     ''');
+
+    // ---------------- USERS ----------------
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT
+      )
+    ''');
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    // ✅ Add users table
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT UNIQUE,
+          password TEXT
+        )
+      ''');
+    }
+
+    // ✅ Add time column to reminders (IMPORTANT FIX)
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE reminders ADD COLUMN time TEXT');
+    }
   }
 
   // ---------------- PROFILE ----------------
@@ -57,7 +89,7 @@ class DatabaseHelper {
   Future<int> insertProfile(Map<String, dynamic> data) async {
     final db = await database;
 
-    await db.delete('profile'); // keep ONLY 1 profile (VERY IMPORTANT)
+    await db.delete('profile'); // keep only 1
 
     return db.insert('profile', {
       'name': data['name'],
@@ -99,11 +131,12 @@ class DatabaseHelper {
 
   // ---------------- REMINDERS ----------------
 
-  Future<int> insertReminder(String title) async {
+  Future<int> insertReminder(String title, String time) async {
     final db = await database;
 
     return db.insert('reminders', {
       'title': title,
+      'time': time,
     });
   }
 
@@ -115,5 +148,43 @@ class DatabaseHelper {
   Future<void> deleteReminder(int id) async {
     final db = await database;
     await db.delete('reminders', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ---------------- USERS ----------------
+
+  Future<int> registerUser(String email, String password) async {
+    final db = await database;
+
+    return db.insert('users', {
+      'email': email,
+      'password': password,
+    });
+  }
+
+  Future<Map<String, dynamic>?> loginUser(
+      String email, String password) async {
+    final db = await database;
+
+    final result = await db.query(
+      'users',
+      where: 'email = ? AND password = ?',
+      whereArgs: [email, password],
+    );
+
+    if (result.isNotEmpty) return result.first;
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getUserByEmail(String email) async {
+    final db = await database;
+
+    final result = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (result.isNotEmpty) return result.first;
+    return null;
   }
 }

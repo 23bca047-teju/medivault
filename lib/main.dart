@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:medivault/data/database_helper.dart';
 import 'package:medivault/services/notification_service.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/register_screen.dart';
+import 'package:medivault/screens/forgot_password_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,9 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final email = TextEditingController();
   final password = TextEditingController();
 
-  void login() {
-    if (email.text == "admin@medivault.com" &&
-        password.text == "123456") {
+  Future<void> login() async {
+    final user = await DatabaseHelper.instance
+        .loginUser(email.text.trim(), password.text.trim());
+
+    if (user != null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -72,26 +77,19 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Text(
                 "MediVault Login",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
 
               TextField(
                 controller: email,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                ),
+                decoration: const InputDecoration(labelText: "Email"),
               ),
 
               TextField(
                 controller: password,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                ),
+                decoration: const InputDecoration(labelText: "Password"),
               ),
 
               const SizedBox(height: 20),
@@ -99,6 +97,33 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 onPressed: login,
                 child: const Text("Login"),
+              ),
+
+              const SizedBox(height: 10),
+
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RegisterScreen(),
+                    ),
+                  );
+                },
+                child: const Text("Don't have an account? Register"),
+              ),
+
+              // ✅ FORGOT PASSWORD BUTTON
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ForgotPasswordScreen(),
+                    ),
+                  );
+                },
+                child: const Text("Forgot Password?"),
               ),
             ],
           ),
