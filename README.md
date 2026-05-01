@@ -18,10 +18,13 @@ Additionally, patients often miss medications and appointments, which negatively
 
 ## Features
 
-### 1. User Login
+### 1. User Authentication System
 
-* Simple authentication system
+* User registration with dynamic input (no hardcoded credentials)
+* Login using registered email and password
+* Forgot Password functionality to retrieve account
 * Redirects user to dashboard after successful login
+* User data stored securely using SQLite database
 
 ### 2. Health Profile Management
 
@@ -59,14 +62,22 @@ Additionally, patients often miss medications and appointments, which negatively
 ### 6. Smart Reminder System
 
 * Add medicine or appointment reminders
+* Select time for reminders (time-based scheduling)
 * Stores reminders in local database
-* Integrated with local notification system
+* Instant notification shown when reminder is added
+* Scheduled notifications triggered at selected time (device dependent)
 
-### 7. Emergency Card
+### 7. Notification System
+
+* Local notifications using flutter_local_notifications
+* Instant alerts for reminders
+* Scheduled alerts for medicines and appointments
+* Works based on device permissions and system settings
+
+### 8. Emergency Card
 
 * Displays critical patient information in one screen
 * Quick access during urgent situations
-
 ---
 
 ## Technologies Used
@@ -75,6 +86,7 @@ Additionally, patients often miss medications and appointments, which negatively
 * **Database:** SQLite (sqflite)
 * **Notifications:** flutter_local_notifications
 * **QR Code:** qr_flutter
+* **Authentication:** Local SQLite-based user management
 * **IDE:** Android Studio / VS Code
 
 ---
@@ -125,9 +137,19 @@ flutter run
 ## Screenshots
 
 ### Login Screen
-<img width="175" height="377" alt="Screenshot 2026-04-26 235022" src="https://github.com/user-attachments/assets/856ea1ba-3498-4d15-8df2-2ac262f08cbf" />
-<img width="173" height="374" alt="Screenshot 2026-04-26 235111" src="https://github.com/user-attachments/assets/93f25ca9-4c91-4208-9c1b-84751a7ed448" />
-<img width="172" height="377" alt="Screenshot 2026-04-26 235259" src="https://github.com/user-attachments/assets/571df2e8-6b2e-4f02-9ddb-65e47216e4db" />
+
+<img width="172" height="377" alt="Screenshot 2026-05-01 185637" src="https://github.com/user-attachments/assets/262f82f7-6745-4105-97dd-a5b610d86bc1" />
+<img width="176" height="377" alt="Screenshot 2026-05-01 190020" src="https://github.com/user-attachments/assets/c160312a-01cb-4e39-b868-ac1dd7595edd" />
+<img width="178" height="378" alt="Screenshot 2026-05-01 190804" src="https://github.com/user-attachments/assets/73747ea7-69f3-4835-adf3-9c137f090cac" />
+<img width="170" height="379" alt="Screenshot 2026-05-01 190920" src="https://github.com/user-attachments/assets/90169a68-c18f-42c4-8f7e-a68b0f05f7d1" />
+<img width="174" height="376" alt="Screenshot 2026-05-01 191040" src="https://github.com/user-attachments/assets/e8e6a4a2-87fb-4318-8816-2fdd488637e1" />
+
+### Registration Screen
+
+<img width="170" height="374" alt="Screenshot 2026-05-01 190103" src="https://github.com/user-attachments/assets/43a72b80-d3cf-41fc-8d93-8a644f66aabc" />
+<img width="173" height="378" alt="Screenshot 2026-05-01 190300" src="https://github.com/user-attachments/assets/6aa4c98c-ca32-4c77-9b9d-a162e0575837" />
+<img width="178" height="378" alt="Screenshot 2026-05-01 190804" src="https://github.com/user-attachments/assets/dbcb4e42-48c1-4906-bbf3-9ca9a3b0f0c8" />
+<img width="172" height="377" alt="Screenshot 2026-05-01 190340" src="https://github.com/user-attachments/assets/a20d392d-4a5d-43ba-9eda-f19e4f3ae18d" />
 
 ### Dashboard
 
@@ -157,20 +179,25 @@ flutter run
 
 ### Reminders
 
-<img width="173" height="377" alt="Screenshot 2026-04-26 235759" src="https://github.com/user-attachments/assets/d00e9072-0f5f-4131-8bd4-c652dd041ac9" />
-<img width="172" height="378" alt="Screenshot 2026-04-26 235915" src="https://github.com/user-attachments/assets/cb1908e1-3cfa-493c-943f-a3e863bbda57" />
+<img width="173" height="378" alt="Screenshot 2026-05-01 212508" src="https://github.com/user-attachments/assets/d2bd7ccf-7597-427b-b7d5-7e5907f6371e" />
+<img width="173" height="377" alt="Screenshot 2026-05-01 212615" src="https://github.com/user-attachments/assets/3b3f8eb1-dacb-4cf4-9eee-f3aa76001147" />
+<img width="176" height="378" alt="Screenshot 2026-05-01 212642" src="https://github.com/user-attachments/assets/c02d1840-0493-4d5d-bf8d-454152ccef8b" />
+<img width="172" height="372" alt="Screenshot 2026-05-01 212721" src="https://github.com/user-attachments/assets/e84b75b3-e954-4a98-b878-1e2b5083f4d5" />
+<img width="169" height="377" alt="Screenshot 2026-05-01 212755" src="https://github.com/user-attachments/assets/270b842e-fd37-4b41-b1ad-b02cc75c3a28" />
 
 ---
 
 ## Key Functionality Flow
 
-1. User logs in
-2. Creates health profile
-3. Uploads medical documents
-4. AI Score evaluates preparedness
-5. Emergency Card displayed
-6. QR code generated for emergency use
-7. Reminders help maintain health routine
+1.User registers a new account
+2.User logs in using credentials
+3.Health profile is created and stored
+4.Medical documents are uploaded and managed
+5.AI Score evaluates preparedness based on disease data
+6.Emergency Card displays key information
+7.QR code enables emergency access
+8.Reminders are scheduled for medicines/appointments
+9.Notifications alert users at the required time
 
 ---
 
