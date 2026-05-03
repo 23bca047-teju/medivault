@@ -66,7 +66,7 @@ class NotificationService {
       tz.TZDateTime.from(scheduledTime, tz.local),
       details,
 
-      // ✅ CHANGED (this is the main fix)
+      // CHANGED 
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
 
       uiLocalNotificationDateInterpretation:

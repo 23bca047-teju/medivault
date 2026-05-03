@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text("Don't have an account? Register"),
               ),
 
-              // ✅ FORGOT PASSWORD BUTTON
+              // FORGOT PASSWORD BUTTON
               TextButton(
                 onPressed: () {
                   Navigator.push(

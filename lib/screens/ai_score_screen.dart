@@ -37,7 +37,7 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
     score = 0;
     missingDocs.clear();
 
-    // ❌ NO PROFILE
+    //  NO PROFILE
     if (profile == null || profile!.isEmpty) {
       missingDocs.add("Complete Health Profile");
       return;
@@ -50,14 +50,14 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
       disease = "General";
     }
 
-    // ✅ PROFILE SCORE
+    //  PROFILE SCORE
     score += 20;
 
-    // ✅ REQUIRED DOCS
+    //  REQUIRED DOCS
     List<String> requiredDocs =
         DiseaseData.diseaseDocs[disease] ?? [];
 
-    // ✅ USER UPLOADED DOCS
+    //  USER UPLOADED DOCS
     List<String> uploadedDocs =
         documents.map((e) => (e['name'] ?? "").toString()).toList();
 
@@ -74,15 +74,15 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
       }
     }
 
-    // ✅ DOCUMENT SCORE (60%)
+    //  DOCUMENT SCORE (60%)
     if (requiredDocs.isNotEmpty) {
       score += ((matched / requiredDocs.length) * 60).toInt();
     }
 
-    // ✅ EMERGENCY / BASE SCORE
+    //  EMERGENCY / BASE SCORE
     score += 20;
 
-    // 🔒 LIMIT SCORE
+    //  LIMIT SCORE
     if (score > 100) score = 100;
   }
 
@@ -141,7 +141,7 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
             Expanded(
               child: missingDocs.isEmpty
                   ? const Center(
-                      child: Text("All required documents uploaded ✅"),
+                      child: Text("All required documents uploaded "),
                     )
                   : ListView.builder(
                       itemCount: missingDocs.length,
