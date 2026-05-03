@@ -112,6 +112,8 @@ lib/
 │   ├── upload_documents_screen.dart
 │   ├── ai_score_screen.dart
 │   ├── emergency_card_screen.dart
+|   ├── forgot_password_screen.dart
+|   ├── register_screen.dart
 │   ├── qr_screen.dart
 │   └── reminders_screen.dart
 
