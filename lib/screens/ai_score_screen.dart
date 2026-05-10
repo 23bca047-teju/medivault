@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medivault/data/database_helper.dart';
-import 'package:medivault/data/disease_data.dart'; // <-- YOUR FILE
+import 'package:medivault/data/disease_data.dart';
 
 class AIScoreScreen extends StatefulWidget {
   const AIScoreScreen({super.key});
@@ -37,7 +37,7 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
     score = 0;
     missingDocs.clear();
 
-    //  NO PROFILE
+    // NO PROFILE
     if (profile == null || profile!.isEmpty) {
       missingDocs.add("Complete Health Profile");
       return;
@@ -45,45 +45,46 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
 
     String disease = profile!['disease'] ?? "General";
 
-    // fallback safety
+    // SAFETY CHECK
     if (!DiseaseData.diseaseDocs.containsKey(disease)) {
       disease = "General";
     }
 
-    //  PROFILE SCORE
+    // PROFILE SCORE
     score += 20;
 
-    //  REQUIRED DOCS
+    // REQUIRED DOCS
     List<String> requiredDocs =
         DiseaseData.diseaseDocs[disease] ?? [];
 
-    //  USER UPLOADED DOCS
-    List<String> uploadedDocs =
-        documents.map((e) => (e['name'] ?? "").toString()).toList();
+    // TOTAL UPLOADED DOCS
+    int uploadedCount = documents.length;
 
-    int matched = 0;
+    // MATCHED DOCS
+    int matched = uploadedCount;
 
-    for (var reqDoc in requiredDocs) {
-      bool found = uploadedDocs.any((uploaded) =>
-          uploaded.toLowerCase().contains(reqDoc.toLowerCase()));
-
-      if (found) {
-        matched++;
-      } else {
-        missingDocs.add(reqDoc);
-      }
+    // LIMIT MATCH COUNT
+    if (matched > requiredDocs.length) {
+      matched = requiredDocs.length;
     }
 
-    //  DOCUMENT SCORE (60%)
+    // FIND MISSING DOCS
+    for (int i = matched; i < requiredDocs.length; i++) {
+      missingDocs.add(requiredDocs[i]);
+    }
+
+    // DOCUMENT SCORE
     if (requiredDocs.isNotEmpty) {
       score += ((matched / requiredDocs.length) * 60).toInt();
     }
 
-    //  EMERGENCY / BASE SCORE
+    // BASE SCORE
     score += 20;
 
-    //  LIMIT SCORE
-    if (score > 100) score = 100;
+    // LIMIT SCORE
+    if (score > 100) {
+      score = 100;
+    }
   }
 
   @override
@@ -121,7 +122,9 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 "Disease: ${profile?['disease'] ?? 'Not Set'}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
@@ -131,23 +134,30 @@ class _AIScoreScreenState extends State<AIScoreScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 "Missing Documents",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
             const SizedBox(height: 10),
 
-            // MISSING LIST
+            // MISSING DOCS LIST
             Expanded(
               child: missingDocs.isEmpty
                   ? const Center(
-                      child: Text("All required documents uploaded "),
+                      child: Text(
+                        "All required documents uploaded",
+                      ),
                     )
                   : ListView.builder(
                       itemCount: missingDocs.length,
                       itemBuilder: (context, index) {
                         return ListTile(
-                          leading: const Icon(Icons.warning, color: Colors.red),
+                          leading: const Icon(
+                            Icons.warning,
+                            color: Colors.red,
+                          ),
                           title: Text(missingDocs[index]),
                         );
                       },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:medivault/data/database_helper.dart';
 import 'dashboard_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,12 +14,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  void login() {
-    const correctEmail = "admin@medivault.com";
-    const correctPassword = "123456";
+  Future<void> login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-    if (emailController.text.trim() == correctEmail &&
-        passwordController.text == correctPassword) {
+    // EMPTY CHECK
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please fill all fields"),
+        ),
+      );
+      return;
+    }
+
+    // EMAIL VALIDATION
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Enter valid email address"),
+        ),
+      );
+      return;
+    }
+
+    final user = await DatabaseHelper.instance
+        .loginUser(email, password);
+
+    if (user != null) {
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -26,9 +52,18 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid Email or Password")),
+        const SnackBar(
+          content: Text("Invalid Email or Password"),
+        ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -40,10 +75,15 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+
               const Text(
                 "MediVault Login",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+
               const SizedBox(height: 30),
 
               TextField(
@@ -74,6 +114,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: login,
                   child: const Text("Login"),
                 ),
+              ),
+
+              const SizedBox(height: 15),
+
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RegisterScreen(),
+                    ),
+                  );
+                },
+                child: const Text("Create New Account"),
               ),
             ],
           ),
